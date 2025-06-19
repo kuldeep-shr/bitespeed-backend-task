@@ -11,7 +11,21 @@
 <hr>
 
 <h2>🧪 Project Status</h2>
-<p><strong>🚧 Project initialized.</strong> Folder structure, dependencies, and time machine skeleton are ready. API logic coming soon...</p>
+<ul>
+  <li>✅ Project initialized</li>
+  <li>✅ Core service logic to identify & merge contact data added</li>
+  <li>🚧 API endpoints and tests are in the pipeline</li>
+</ul>
+
+<hr>
+
+<h2>✨ Features (so far)</h2>
+
+<ul>
+  <li>🔗 <strong>Contact Resolver Service</strong>: Resolves multiple phone/email entries and links them under a primary identity — even when Doc tries to outsmart us!</li>
+  <li>🧠 Smart linking logic: Prevents duplicates and keeps the space-time contact database stable</li>
+  <li>🧼 Clean, testable TypeScript code with error handling</li>
+</ul>
 
 <hr>
 
@@ -29,10 +43,12 @@ yarn dev
 
 <hr>
 
-<h2>🛠 Tech Stack (Planned)</h2>
+<h2>🛠 Tech Stack</h2>
 
 <ul>
   <li>🧠 <strong>Node.js</strong> + <strong>Express</strong> – our server's flux capacitor</li>
+  <li>🧙 <strong>TypeScript</strong> – Strongly-typed JavaScript for safer time jumps</li>
+  <li>🧱 <strong>TypeORM</strong> – Elegant TypeScript ORM for entity magic</li>
   <li>🗂️ <strong>PostgreSQL</strong> / <strong>SQLite</strong> – to store Doc’s contact puzzle pieces</li>
   <li>🧪 <strong>Jest</strong> – to make sure our code doesn’t break the space-time continuum</li>
   <li>⚙️ <strong>Yarn</strong> – because package management should be fast (like 88 mph fast)</li>
@@ -43,9 +59,9 @@ yarn dev
 <h2>👨‍🔬 A Word from the Doc</h2>
 
 <blockquote>
-  <p><em>"Marty! If you're reading this README, you're in the right timeline. Now let's unify those contact records before it's too late!"</em></p>
+  <p><em>"Marty! If you're reading this README, you're in the right timeline. The contact resolution service is live — now let’s unify those records before we tear a hole in reality!"</em></p>
 </blockquote>
 
-<p>More code coming soon. Until then, keep your circuits warm, your code clean, and your customers identified — even if they’re from the future.</p>
+<p>More APIs and features are coming soon. Until then, keep your circuits warm, your code clean, and your customers identified — even if they’re from the future.</p>
 
 <p><strong>Great Scott!</strong> Let's do this.</p>
