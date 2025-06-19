@@ -2,14 +2,10 @@ import express from "express";
 import { celebrate } from "celebrate";
 
 import { ContactController } from "../../controllers/contact.controller";
-import userSchema from "../../../schemas/user.schema";
+import { contactSchema } from "../../../schemas/contact.schema";
 
 const router = express.Router();
 
-router.post(
-  "/identify",
-  // celebrate(userSchema.register),
-  ContactController.identify
-);
+router.post("/identify", celebrate(contactSchema), ContactController.identify);
 
 export default router;
