@@ -5,76 +5,84 @@ import { FindOptionsWhere } from "typeorm";
 export class ContactService {
   private contactRepository = AppDataSource.getRepository(Contact);
 
-  /**
-   * Identifies and links contact information (email, phone) under a primary identity.
-   */
   async identifyContact(email?: string, phoneNumber?: string) {
     if (!email && !phoneNumber) {
       throw new Error("At least one of email or phoneNumber must be provided.");
     }
 
-    try {
-      const whereClause: FindOptionsWhere<Contact>[] = [];
+    const whereClause: FindOptionsWhere<Contact>[] = [];
+    if (email) whereClause.push({ email });
+    if (phoneNumber) whereClause.push({ phoneNumber });
 
-      if (email) whereClause.push({ email });
-      if (phoneNumber) whereClause.push({ phoneNumber });
+    const matchedContacts = await this.contactRepository.find({
+      where: whereClause,
+    });
 
-      const matchedContacts = await this.contactRepository.find({
-        where: whereClause,
+    if (matchedContacts.length === 0) {
+      const newContact = this.contactRepository.create({
+        email: email ?? null,
+        phoneNumber: phoneNumber ?? null,
+        linkPrecedence: "primary",
+        linkedId: null,
       });
 
-      if (matchedContacts.length === 0) {
-        const newContact = this.contactRepository.create({
-          email: email ?? null,
-          phoneNumber: phoneNumber ?? null,
-          linkPrecedence: "primary",
-          linkedId: null,
-        });
-
-        const saved = await this.contactRepository.save(newContact);
-        return this.formatResponse(saved, []);
-      }
-
-      const primaryContacts = matchedContacts.filter(
-        (c) => c.linkPrecedence === "primary"
-      );
-
-      const primary = primaryContacts.sort(
-        (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
-      )[0];
-
-      const allRelated = await this.contactRepository.find({
-        where: [{ linkedId: primary.id }, { id: primary.id }],
-      });
-
-      // Check if email or phone already exists among related
-      const alreadyExists = allRelated.find(
-        (c) => c.email === email || c.phoneNumber === phoneNumber
-      );
-
-      if (!alreadyExists) {
-        // Create new secondary contact linked to primary
-        const newLinkedContact = this.contactRepository.create({
-          email: email ?? null,
-          phoneNumber: phoneNumber ?? null,
-          linkPrecedence: "secondary",
-          linkedId: primary.id,
-        });
-
-        const saved = await this.contactRepository.save(newLinkedContact);
-        allRelated.push(saved);
-      }
-
-      return this.formatResponse(primary, allRelated);
-    } catch (error) {
-      console.error("❌ Error identifying contact:", error);
-      throw new Error("Something went wrong while identifying the contact.");
+      const saved = await this.contactRepository.save(newContact);
+      return this.formatResponse(saved, []);
     }
+
+    const allContacts = await this.contactRepository.find();
+
+    const related = allContacts.filter((c) =>
+      matchedContacts.some(
+        (mc) =>
+          mc.id === c.id ||
+          mc.id === c.linkedId ||
+          mc.linkedId === c.id ||
+          (mc.linkedId && mc.linkedId === c.linkedId)
+      )
+    );
+
+    const primary = [...related]
+      .filter((c) => c.linkPrecedence === "primary")
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0];
+
+    const secondariesToUpdate = related.filter(
+      (c) => c.linkPrecedence === "primary" && c.id !== primary.id
+    );
+
+    if (secondariesToUpdate.length > 0) {
+      const ids = secondariesToUpdate.map((c) => c.id);
+      await this.contactRepository.update(ids, {
+        linkPrecedence: "secondary",
+        linkedId: primary.id,
+      });
+    }
+
+    const finalContacts = await this.contactRepository.find({
+      where: [{ linkedId: primary.id }, { id: primary.id }],
+    });
+
+    const isEmailPresent = email
+      ? finalContacts.some((c) => c.email === email)
+      : true;
+    const isPhonePresent = phoneNumber
+      ? finalContacts.some((c) => c.phoneNumber === phoneNumber)
+      : true;
+
+    if (!isEmailPresent || !isPhonePresent) {
+      const newSecondary = this.contactRepository.create({
+        email: email ?? null,
+        phoneNumber: phoneNumber ?? null,
+        linkPrecedence: "secondary",
+        linkedId: primary.id,
+      });
+      const saved = await this.contactRepository.save(newSecondary);
+      finalContacts.push(saved);
+    }
+
+    return this.formatResponse(primary, finalContacts);
   }
 
-  /**
-   * Formats the unified contact response
-   */
   private formatResponse(primary: Contact, contacts: Contact[]) {
     const primaryId = primary.id;
 
@@ -83,7 +91,7 @@ export class ContactService {
         contacts
           .map((c) => c.email)
           .concat(primary.email)
-          .filter((e): e is string => e !== null)
+          .filter((e): e is string => !!e)
       )
     );
 
@@ -92,7 +100,7 @@ export class ContactService {
         contacts
           .map((c) => c.phoneNumber)
           .concat(primary.phoneNumber)
-          .filter((p): p is string => p !== null)
+          .filter((p): p is string => !!p)
       )
     );
 

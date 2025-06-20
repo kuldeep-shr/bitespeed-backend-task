@@ -6,20 +6,21 @@ const initDB = async () => {
     await AppDataSource.initialize();
     const queryRunner = AppDataSource.createQueryRunner();
 
-    const tables = await queryRunner.getTables(["contacts"]);
+    // Check if 'contacts' table exists
+    const hasContactsTable = await queryRunner.hasTable("contacts");
 
-    if (tables.length === 1) {
-      console.log("✅ Tables already exist. Skipping creation.");
+    if (hasContactsTable) {
+      console.log("✅ 'contacts' table already exists. Skipping creation.");
     } else {
-      console.log("📦 Creating missing tables...");
+      console.log("📦 'contacts' table not found. Creating tables...");
       await AppDataSource.synchronize();
-      console.log("✅ Tables created or updated.");
+      console.log("✅ Database schema synchronized. Tables created.");
     }
 
     await queryRunner.release();
     await AppDataSource.destroy();
   } catch (err) {
-    console.error("❌ Error during DB initialization:", err);
+    console.error("❌ Failed to initialize database:", err);
     process.exit(1);
   }
 };
