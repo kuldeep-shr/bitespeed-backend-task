@@ -20,10 +20,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "test": "yarn run init-db && jest --runInBand --detectOpenHandles --forceExit",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "start": "yarn init-db && node dist/src/index.js",
     "init-db": "ts-node src/scripts/init-db.ts",
     "truncate-db": "ts-node src/scripts/truncate-db.ts"
   },
