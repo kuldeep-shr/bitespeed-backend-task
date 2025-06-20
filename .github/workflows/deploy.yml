@@ -1,0 +1,39 @@
+name: 🚀 Build & Deploy – FluxKart Identity Resolver (Doc Mode)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      PORT: ${{ secrets.PORT }}
+      NODE_ENV: ${{ secrets.NODE_ENV }}
+      DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+
+    steps:
+      - name: 📂 Checkout Timeline Code
+        uses: actions/checkout@v3
+
+      - name: 🔀 Set Up Node.js (Temporal Engine v18)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: yarn
+
+      - name: 📦 Install Dependencies (Flux Compactor)
+        run: yarn install
+
+      - name: ⚙️ Initialize Time Circuit DB
+        run: yarn init-db
+
+      - name: 🛠️ Build Project (DeLorean Mode)
+        run: yarn build
+
+      - name: 🚀 Trigger Render Deployment
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
